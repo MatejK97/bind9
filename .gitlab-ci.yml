@@ -1,0 +1,23 @@
+include:
+  - project: homelab/ci-templates
+    ref: main
+    file: docker-service.yml
+
+variables:
+  COMPOSE_FILE_NAME: docker-compose.yml
+  # Deploys to the home VM over WireGuard; the job itself runs on the VPS runner
+  REMOTE_HOST: "10.10.0.2"
+  # BIND reads its zone files only at startup
+  DEPLOY_RESTART: "true"
+
+# Catches syntax errors and broken records before they reach DNS
+check-zone:
+  stage: validate
+  image: alpine:3.24
+  before_script:
+    - apk add --no-cache bind
+  script:
+    # named.conf refers to /etc/bind/... and /var/cache/bind, so recreate
+    # the paths BIND sees. -z also loads and checks every zone it references.
+    - mkdir -p /etc/bind /var/cache/bind && cp config/* /etc/bind/
+    - named-checkconf -z /etc/bind/named.conf

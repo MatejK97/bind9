@@ -1,0 +1,15 @@
+---
+services:
+  bind9:
+    container_name: dns-server
+    image: ubuntu/bind9:9.20-26.04
+    environment:
+      - TZ=Europe/Zagreb
+    ports:
+      - "192.168.1.145:53:53/tcp"
+      - "192.168.1.145:53:53/udp"
+    volumes:
+      - ./config:/etc/bind
+      - ./cache:/var/cache/bind
+      - ./records:/var/lib/bind
+    restart: unless-stopped
